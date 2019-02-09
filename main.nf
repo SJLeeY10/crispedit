@@ -30,8 +30,6 @@ def helpMessage() {
     nextflow run nf-core/crispedit --reads '*_R{1,2}.fastq.gz' -profile docker
 
     Mandatory arguments:
-      --reads                       Path to input data (must be surrounded with quotes)
-      --genome                      Name of iGenomes reference
       -profile                      Configuration profile to use. Can use multiple (comma separated)
                                     Available: conda, docker, singularity, awsbatch, test and more.
 
@@ -40,6 +38,7 @@ def helpMessage() {
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references.
       --fasta                       Path to Fasta reference
+      --fastq 						Input FASTQ file
 
     Other options:
       --outdir                      The output directory where the results will be saved
@@ -62,23 +61,7 @@ if (params.help){
     exit 0
 }
 
-// TODO nf-core: Add any reference files that are needed
-// Configurable reference genomes
-fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-if ( params.fasta ){
-    fasta = file(params.fasta)
-    if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
-}
-//
-// NOTE - THIS IS NOT USED IN THIS PIPELINE, EXAMPLE ONLY
-// If you want to use the above in a process, define the following:
-//   input:
-//   file fasta from fasta
-//
 
-
-// Has the run name been specified by the user?
-//  this has the bonus effect of catching both -name and --name
 custom_runName = params.name
 if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
   custom_runName = workflow.runName
@@ -94,33 +77,18 @@ if( workflow.profile == 'awsbatch') {
   if (!workflow.workDir.startsWith('s3:') || !params.outdir.startsWith('s3:')) exit 1, "Workdir or Outdir not on S3 - specify S3 Buckets for each to run on AWSBatch!"
 }
 
-// Stage config files
-ch_multiqc_config = Channel.fromPath(params.multiqc_config)
-ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
-
 /*
  * Create a channel for input read files
  */
- if(params.readPaths){
-     if(params.singleEnd){
-         Channel
-             .from(params.readPaths)
-             .map { row -> [ row[0], [file(row[1][0])]] }
-             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-             .into { read_files_fastqc; read_files_trimming }
-     } else {
-         Channel
-             .from(params.readPaths)
-             .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
-             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-             .into { read_files_fastqc; read_files_trimming }
-     }
- } else {
-     Channel
-         .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
-         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
-         .into { read_files_fastqc; read_files_trimming }
- }
+
+Channel.fromPath(params.fastq)
+	.ifEmpty { exit 1, "Interleaved FASTQ file not found: ${params.fastq}" }
+	.set { in_fastq }
+
+Channel.fromPath(params.genome)
+	.ifEmpty { exit 1, "Reference genome file not found: ${params.genome}" }
+	.set { in_reference }
+ 
 
 
 // Header log info
@@ -182,96 +150,44 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 }
 
 
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-
-    output:
-    file 'software_versions_mqc.yaml' into software_versions_yaml
-
-    script:
-    // TODO nf-core: Get all tools to print their version number here
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    multiqc --version > v_multiqc.txt
-    scrape_software_versions.py > software_versions_mqc.yaml
-    """
-}
-
-
 
 /*
- * STEP 1 - FastQC
+ * STEP 1 - 
  */
-process fastqc {
-    tag "$name"
-    publishDir "${params.outdir}/fastqc", mode: 'copy',
-        saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
+process indexAndMapping {
+    tag "${fastq.baseName}"
 
     input:
-    set val(name), file(reads) from read_files_fastqc
+    set val(fastq), file(reads) from in_fastq
+    set val(genome), file(reference) from in_reference
 
     output:
-    file "*_fastqc.{zip,html}" into fastqc_results
+    file "*.bam" into aln_file
+
+
 
     script:
     """
-    fastqc -q $reads
+    bbmap.sh ref=${genome}
+    bbmap.sh in=${fastq} out=${fastq.baseName}.bam
     """
 }
 
-
-
-/*
- * STEP 2 - MultiQC
- */
-process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+process identifyHFR {
+    tag "${bam.baseName}"
 
     input:
-    file multiqc_config from ch_multiqc_config
-    // TODO nf-core: Add in log files from your new processes for MultiQC to find!
-    file ('fastqc/*') from fastqc_results.collect().ifEmpty([])
-    file ('software_versions/*') from software_versions_yaml
-    file workflow_summary from create_workflow_summary(summary)
+    file bam from aln_file
 
     output:
-    file "*multiqc_report.html" into multiqc_report
-    file "*_data"
+    file "*.hfr.txt" into hfr_file
 
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
-    """
-    multiqc -f $rtitle $rfilename --config $multiqc_config .
-    """
-}
-
-
-
-/*
- * STEP 3 - Output Description HTML
- */
-process output_documentation {
-    publishDir "${params.outdir}/Documentation", mode: 'copy'
-
-    input:
-    file output_docs from ch_output_docs
-
-    output:
-    file "results_description.html"
 
     script:
     """
-    markdown_to_html.r $output_docs results_description.html
+    samtools view ${bam}|awk -F'\t' '{ print \$3"\t"\$4"\t"\$6"\t"\$10 }'|sort|uniq -c|sort -k1,1n|awk '\$1>100' > ${bam.baseName}.hfr.txt
     """
 }
-
-
 
 /*
  * Completion e-mail notification
