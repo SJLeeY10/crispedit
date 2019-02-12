@@ -1,3 +1,4 @@
+#!/home/ec2-user/miniconda3/bin/python
 import re
 import sys
 

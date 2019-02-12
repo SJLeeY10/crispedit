@@ -189,6 +189,22 @@ process identifyHFR {
     """
 }
 
+
+process identiyEdits {
+  tag ""
+
+  input:
+  set val(hfrFile), file(hfR) from hfr_file
+
+  output:
+  file "*.edits.hfr.txt" into processed_hfr
+
+  script:
+  """
+  cigar2seq.py ${hfrFile} > ${hfrFile.baseName}.edits.hfr.txt
+  """
+}
+
 /*
  * Completion e-mail notification
  */
