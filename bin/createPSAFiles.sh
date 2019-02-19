@@ -4,19 +4,19 @@ hfrFile=$1
 referenceFile=$2
 
 # Create a file that will be input to clustalO with column names precreated. 
-printf "PSA Input\n" > clustalO_input.txt	
+touch clustalO_input.txt	
 while read line
 
-do 
+do  
+	region=$(printf "%s\n" "$line"|awk -F'\t' '{ print $3 }')
+	target_fasta_header=$(printf "%s\n" "$line"|awk -F'\t' '{ print $1 }')
+	frequency=$(printf "%s\n" "$line"|awk -F'\t'  '{ print $2 }')
+	targetSequence=$(printf "%s\n" "$line"|awk -F'\t'  '{ print $6 }')
+	mapStart=$(printf "%s\n" "$line"|awk -F'\t' '{ print $4 }')
 
-	region=$(echo $line|awk '{ print $2 }')
+	echo $target_fasta_header
 
-	frequency=$(echo $line|awk '{ print $1 }')
-	cigar=$(echo $line|awk '{ print $4 }')
-	mapStart=$(echo $line|awk '{ print $3 }')
-	targetSequence=$(echo $line|awk '{ print $5 }')
-
-	printf ">${region}|${frequency}|${mapStart}|${cigar}\n${targetSequence}\n" > ${region}_${frequency}_targets_ref_psa_input.fa
+	printf ">${target_fasta_header}\n${targetSequence}\n" > ${region}_${frequency}_targets_ref_psa_input.fa
 	
 	#TO-DO: Do not hard-code read length - 142 below
 	mapStop=`expr ${mapStart} + 141`
