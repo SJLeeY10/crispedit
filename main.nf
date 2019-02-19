@@ -87,7 +87,7 @@ Channel.fromPath(params.fastq)
 
 Channel.fromPath(params.genome)
 	.ifEmpty { exit 1, "Reference genome file not found: ${params.genome}" }
-	.set { in_reference }
+	.into { in_reference_for_mapping; in_reference_for_psa }
  
 
 
@@ -159,7 +159,7 @@ process indexAndMapping {
 
     input:
     set val(fastq), file(reads) from in_fastq
-    set val(genome), file(reference) from in_reference
+    set val(genome), file(reference) from in_reference_for_mapping
 
     output:
     file "*.bam" into aln_file
@@ -187,6 +187,45 @@ process identifyHFR {
     """
     samtools view ${bam}|awk -F'\t' '{ print \$3"\t"\$4"\t"\$6"\t"\$10 }'|sort|uniq -c|sort -k1,1n|awk '\$1>100' > ${bam.baseName}.hfr.txt
     """
+}
+
+
+process identiyEdits {
+  tag "${hfrFile.baseName}"
+
+  input:
+  set val(hfrFile), file(hfR) from hfr_file
+
+  output:
+  file "*.edits.hfr.txt" into processed_hfr
+
+  script:
+  """
+  cigar2seq.py ${hfrFile} > ${hfrFile.baseName}.edits.hfr.txt
+  """
+}
+
+
+process prepAndPerformPSA {
+  tag "${processedHfrFile.baseName}"
+  publishDir params.outdir, mode: 'copy'
+
+  input:
+  set val(processedHfrFile), file(processedHfr) from processed_hfr
+  set val(genome), file(reference) from in_reference_for_psa
+
+
+  output:
+  file "*.clustal.out" into clustal_out
+
+  script:
+  """
+  createPSAFiles.sh ${processedHfrFile} ${genome}
+  for psa in \$(cat clustalO_input.txt);
+  do
+    clustalo  --in=\${psa} > \${psa%.*}.clustal.out 
+  done
+  """
 }
 
 /*
