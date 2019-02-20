@@ -49,13 +49,13 @@ with open(sys.argv[-1]) as hfrFile:
 							# TO-DO: Remove repeated code and replace with function. Don't repeat yourself.
 							if y[0]=="X":
 								# print ("Sub", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s - %s - %s percent - %s\t%s\t" %("Sub",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
+								print ("%s-%s-%s-%s\t%s\t" %("Sub",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
 							elif y[0]=="D":
 								# print ("Del", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s - %s - %s percent - %s\t%s\t" %("Del",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
+								print ("%s-%s-%s-%s\t%s\t" %("Del",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
 							elif y[0]=="I":
 								# print ("Ins", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s - %s - %s percent - %s\t%s\t" %("Ins",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
+								print ("%s-%s-%s-%s\t%s\t" %("Ins",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
 						else:
 							track_position+=int(non_match)
 				else:
