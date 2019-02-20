@@ -228,6 +228,61 @@ process prepAndPerformPSA {
   """
 }
 
+clustal_out
+  .toList().flatten()
+  .map {
+    file -> tuple(file, file.baseName)
+  }
+  .groupTuple()
+  .into { clustal_output_to_upload; clustal_output_to_combine }
+
+
+process uploadClustalOut {
+  tag "${psa_out_file.baseName}"
+
+  echo true
+
+  input:
+  set val(psa_out_file), val(psa_out) from clustal_output_to_upload
+
+  script:
+  """
+  aws s3 cp ${psa_out_file} s3://yten-crispr
+  """
+}
+
+
+process combineClustalOut {
+  tag "${psa_out_file_comb.baseName}"
+
+  echo true
+
+  input:
+  set val(psa_out_file_comb), val(psa_out_comb) from clustal_output_to_combine
+
+  output:
+  file("combine.complete.txt") into combine_complete_marker
+
+  script:
+  """
+  cat ${psa_out_file_comb} >> ${params.outdir}/${params.project_name}.combined.clustal.out
+  touch combine.complete.txt
+  """
+}
+
+process uploadCombinedClustalOut {
+  
+  input:
+  file '*.complete.txt' from combine_complete_marker.collect()
+
+
+  script:
+  """
+  aws s3 cp ${params.outdir}/${params.project_name}.combined.clustal.out s3://yten-crispr
+  aws s3api put-object-acl --bucket yten-crispr --key ${params.project_name}.combined.clustal.out  --acl public-read
+  """
+}
+
 /*
  * Completion e-mail notification
  */
