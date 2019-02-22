@@ -34,7 +34,7 @@ cat > ${3}/msa.html <<EOF
   <title>CRISPR Edits</title>
 </head>
 <body>
-<script src="https://s3.amazonaws.com/yten-crispr/msa.min.gz.js"></script>
+<script src="https://s3.amazonaws.com/yten-crispr/msa.min.js"></script>
 <script type="text/javascript" src="./msa.js"></script>
 <div id=project_name><h1>${2}</h1></div>
 <div id="table">${report_table}</div>
