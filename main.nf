@@ -296,7 +296,7 @@ process createFinalReport {
 
   script:
   """
-  createReportPackage.sh ${processedHfrFile2} ${params.project_name} ${params.outdir} \\ ${params.project_name}.combined.clustal.out
+  createReportPackage.sh ${processedHfrFile2} ${params.project_name} ${params.outdir} ${params.project_name}.combined.clustal.out
   """
 }
 
