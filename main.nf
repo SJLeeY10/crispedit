@@ -293,12 +293,10 @@ process createFinalReport {
   file '*.complete.txt' from upload_complete_marker
   file(processedHfrFile2) from processed_hfr_final_report
 
-  output:
-
 
   script:
   """
-  createReportPackage.sh ${processedHfrFile2} ${params.project_name} ${params.project_name}.combined.clustal.out
+  createReportPackage.sh ${processedHfrFile2} ${params.project_name} ${params.outdir} \\ ${params.project_name}.combined.clustal.out
   """
 }
 
