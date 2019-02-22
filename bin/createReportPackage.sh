@@ -22,9 +22,9 @@ row_data="${row_data}<tr><td>${edit_type}</td><td>${edit}</td><td>${percent}</td
 
 done<$1
 
-report_table="<table><th>Edit Type</th><th>Edit</th><th>Edit Percent</th><th>Amplicon/Regsion</th>${row_data}</table>"
+report_table="<table border="1"><tr><th>Edit Type</th><th>Edit</th><th>Edit Percent</th><th>Amplicon/Region</th><th>Read Count</th><th>CIGAR</th></tr>${row_data}</table>"
 
-cat > msa.html <<EOF
+cat > ${3}/msa.html <<EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,9 +34,9 @@ cat > msa.html <<EOF
   <title>CRISPR Edits</title>
 </head>
 <body>
-<script src="https://cdn.bio.sh/msa/latest/msa.min.gz.js"></script>
+<script src="https://s3.amazonaws.com/yten-crispr/msa.min.gz.js"></script>
 <script type="text/javascript" src="./msa.js"></script>
-<div>${2}</div>
+<div id=project_name><h1>${2}</h1></div>
 <div id="table">${report_table}</div>
 <div id="msa">Loading Multiple Alignment...</div>
 </body>
@@ -44,13 +44,13 @@ cat > msa.html <<EOF
 EOF
 
 
-cat > msa.js << EOF
+cat > ${3}/msa.js << EOF
 window.onload = function() {
 	var rootDiv = document.getElementById("msa");
 
 	var opts = {
 	  el: rootDiv,
-	  importURL: "http://s3.amazonaws.com/yten-crispr/${3}",
+	  importURL: "http://s3.amazonaws.com/yten-crispr/${4}",
 	  vis: {
 	    labelId: true
 	  }
