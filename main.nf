@@ -197,7 +197,7 @@ process identiyEdits {
   set val(hfrFile), file(hfR) from hfr_file
 
   output:
-  file "*.edits.hfr.txt" into processed_hfr
+  file "*.edits.hfr.txt" into ( processed_hfr, processed_hfr_final_report)
 
   script:
   """
@@ -275,11 +275,28 @@ process uploadCombinedClustalOut {
   input:
   file '*.complete.txt' from combine_complete_marker.collect()
 
+  output:
+  file("upload.complete.txt") into upload_complete_marker
+
 
   script:
   """
   aws s3 cp ${params.outdir}/${params.project_name}.combined.clustal.out s3://yten-crispr
   aws s3api put-object-acl --bucket yten-crispr --key ${params.project_name}.combined.clustal.out  --acl public-read
+  touch upload.complete.txt
+  """
+}
+
+process createFinalReport {
+  
+  input:
+  file '*.complete.txt' from upload_complete_marker
+  file(processedHfrFile2) from processed_hfr_final_report
+
+
+  script:
+  """
+  createReportPackage.sh ${processedHfrFile2} ${params.project_name} ${params.outdir} \\ ${params.project_name}.combined.clustal.out
   """
 }
 
