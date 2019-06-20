@@ -1,4 +1,4 @@
-#!/home/ec2-user/miniconda3/bin/python
+#!/usr/bin/env python
 import re
 import sys
 
@@ -33,6 +33,8 @@ with open(sys.argv[-1]) as hfrFile:
 		region = bam_entry[1]
 		mapStart = int(bam_entry[2])
 		mycigar = bam_entry[3]
+		if mycigar == "*":
+			continue
 		cigar_items = mycigar.split("=")
 		track_position = 0
 		for idx, cigar_item in enumerate(cigar_items):
@@ -41,9 +43,8 @@ with open(sys.argv[-1]) as hfrFile:
 				if (x):
 					non_matches = list(cigar_item)
 					for nidx, non_match in enumerate(non_matches):
-						y = re.findall("[XDI]", non_match)
+						y = re.findall("[*XDI]", non_match)
 						if (y):
-						
 							myedit = mapStart + (track_position - int(non_matches[nidx - 1]))
 							# print ref[myedit: myedit + ni]
 							# TO-DO: Remove repeated code and replace with function. Don't repeat yourself.
