@@ -237,19 +237,19 @@ clustal_out
   .into { clustal_output_to_upload; clustal_output_to_combine }
 
 
-process uploadClustalOut {
-  tag "${psa_out_file.baseName}"
-
-  echo true
-
-  input:
-  set val(psa_out_file), val(psa_out) from clustal_output_to_upload
-
-  script:
-  """
-  aws s3 cp ${psa_out_file} s3://yten-crispr
-  """
-}
+//process uploadClustalOut {
+//  tag "${psa_out_file.baseName}"
+//
+//  echo true
+//
+//  input:
+//  set val(psa_out_file), val(psa_out) from clustal_output_to_upload
+//
+//  script:
+//  """
+//  aws s3 cp ${psa_out_file} s3://yten-crispr
+//  """
+//}
 
 
 process combineClustalOut {
@@ -270,27 +270,27 @@ process combineClustalOut {
   """
 }
 
-process uploadCombinedClustalOut {
-  
-  input:
-  file '*.complete.txt' from combine_complete_marker.collect()
-
-  output:
-  file("upload.complete.txt") into upload_complete_marker
-
-
-  script:
-  """
-  aws s3 cp ${params.outdir}/${params.project_name}.combined.clustal.out s3://yten-crispr
-  aws s3api put-object-acl --bucket yten-crispr --key ${params.project_name}.combined.clustal.out  --acl public-read
-  touch upload.complete.txt
-  """
-}
+//process uploadCombinedClustalOut {
+//  
+//  input:
+//  file '*.complete.txt' from combine_complete_marker.collect()
+//
+//  output:
+//  file("upload.complete.txt") into upload_complete_marker
+//
+//
+//  script:
+//  """
+//  aws s3 cp ${params.outdir}/${params.project_name}.combined.clustal.out s3://yten-crispr
+//  aws s3api put-object-acl --bucket yten-crispr --key ${params.project_name}.combined.clustal.out  --acl public-read
+//  touch upload.complete.txt
+//  """
+//}
 
 process createFinalReport {
   
   input:
-  file '*.complete.txt' from upload_complete_marker
+  file '*.complete.txt' from combine_complete_marker.collect()
   file(processedHfrFile2) from processed_hfr_final_report
 
 
