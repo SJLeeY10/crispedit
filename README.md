@@ -1,31 +1,9 @@
-# nf-core/crispedit
+# crispedit
 **Nextflow pipeline for inference of CRISPR edits from NGS (Amplicon Sequencing) data**
 
-[![Build Status](https://travis-ci.org/nf-core/crispedit.svg?branch=master)](https://travis-ci.org/nf-core/crispedit)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.32.0-brightgreen.svg)](https://www.nextflow.io/)
-
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
-[![Docker](https://img.shields.io/docker/automated/nfcore/crispedit.svg)](https://hub.docker.com/r/nfcore/crispedit)
-![Singularity Container available](
-https://img.shields.io/badge/singularity-available-7E4C74.svg)
-
-### Introduction
-The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker / singularity containers making installation trivial and results highly reproducible.
-
-
-### Documentation
-The nf-core/crispedit pipeline comes with documentation about the pipeline, found in the `docs/` directory:
-
-1. [Installation](docs/installation.md)
-2. Pipeline configuration
-    * [Local installation](docs/configuration/local.md)
-    * [Adding your own system](docs/configuration/adding_your_own.md)
-    * [Reference genomes](docs/configuration/reference_genomes.md)  
-3. [Running the pipeline](docs/usage.md)
-4. [Output and how to interpret the results](docs/output.md)
-5. [Troubleshooting](docs/troubleshooting.md)
-
-<!-- TODO nf-core: Add a brief overview of what the pipeline does and how it works -->
+```
+nextflow run crispedit/crisedit.nf --in_fastq LC25_18_3433_BADC3_4_6_313418w_BG6.fastq --ref canola_badc_allgenes.fa --out_dir ${PWD}/myProject --project_name LC25
+```
 
 ### Credits
-nf-core/crispedit was originally written by Netsanet Gebremedhin.
+crispedit was originally written by Netsanet Gebremedhin.
