@@ -46,7 +46,7 @@ with open(sys.argv[-1]) as hfrFile:
 			if int(len(sam_columns[9]))<142:
 				continue
 			if "I" not in cigar_string and "D" not in cigar_string and "X" not in cigar_string:
-				print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Wild-type","NA",read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
+				print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Wildtype","NA",read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
 			else:
 				match = re.findall(r'(\d+[M|I|D])', cigar_string)
 				edit_loc = 0
