@@ -57,5 +57,12 @@ window.onload = function() {
     bootstrapMenu: true
 	};
 	var m = msa(opts);
+
+	setTimeout(function() {
+			var labels = document.querySelectorAll('.biojs_msa_labels');
+			[].forEach.call(labels, function(div) {
+	 			div.style.setProperty("display", "inline", "important")
+			});
+		}, 5000);
 };
 EOF
