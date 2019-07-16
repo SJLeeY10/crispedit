@@ -3,7 +3,7 @@ import re
 import sys
 
 
-
+### TO-DO: Create this dictionary dynamically, as opposed to hard-coding
 refSeq = {
   "Chr05_genomic_DNA": "ATGGCTTCCTGTAAGTTTCTCGTACCTGTCTTTTGCTGTCTTGTCCATATCACATGGGTTCTTGTTCCAACATTCAAAACTTGGAGTATTTTTTAGTATTAGAATGATATTCATCGAAAAAATTGGAACCTTTGGGACTTCATTTGAACAGTTAGATTTGATTATCATGTGAAAGTTGAAGCTTTTCTCTTTAGTCTTACTACTCAATGGCTATGAGATTCAAATTTGCTTCCTTTTTACATTCAATAAAGCTTTAATCTAATTTGTTAATTGTCATCTGTAACATAATTAAATAAGAACAATTTGTTTCTTTAAATCCCATCAATAATACACTGTAGTGTTAGGCACCATTGCCATGAGTGTTAATATTATTTCAACCTCGGTGTCTTTTTCAGGTAGCCTGGCAGTTCCTAAGATTAAAATCTCAGCAGCAGTAGACCTCAGTTTAGTAAGATCTGGGAGGTTTCAGATACCATGCAATCAAAGAGTGTTGTTGATTGGTCAAAGGCCGGTTAAGTACTTGAGTCTCAGGGCAACTCTTGGTTCTGTCCAAGCGTCTACTGTCACAGCTGCTGAATCTGCAGGTACATTTGTTGGTCTCTCTATGTTGTATGATCTTTTTTTACTGTTTATATGTCTTGAACACCGAGTGGTTCACATTGTGCATAGAGTTTTATTTCTCCTTAAAATGTTTTCTGATTTAAACATTTTTATACCGACAGCAACTGTAGAAGTAGAAGATACTGAGACGACGAAGCCATCTCCGTTGAACGCTCAGCTCGTTCCCAAGCCCTCTGAGGTGAGAATTTTTGATTTTTTTCAGCAAATTTGAAGATGTCATCTTTAATGAGTAGAACATGATTTATGTGAATGTACTTGCACAATTAACACATTATGCATTTGGTTTGATTTCTTTATTGGATTTTGTAGGTGGAAGCTCTTGTCACTGAGATATGCGATTCCTCATCAATTGCAGAGTTTGAACTGAAAGTAAGGGCTCTGTACTTATGTTATTGCTCTTTTGATTAGTAGTGCTCAGCTAAGTTCTTTTAAAGGATCCTCATCTAATATCTTCATTTGCATATGCTAATAGCTGGGGGGTTTCCGCCTATATGTAGCGAGGAACTTAGCTGACAACAACAGTAGTCCACCACAACCTCAGCCAATTCCTCAATTCCTGCGGCCGTGGCTGCAAGTGCAACCACTGAGAGTGTTGATTCGAATGGATCAGCTTCCTCTACTTCACTGGCTATCACAAAACCAACATCCTCAGCTGCTGATCAGGGTTTGGTGATTCTCCAATCTCCAAAGGTAAGAGACCACACAACTTAAAAAGCTAAATAAATGTCAGAAAGTCACCAAATCTAAATGGTGTGGGGGGGATATGCAGGTAGGGTTCTTCAGGAGATCCAAAACCATAAAGGGTAAACGCACTCCTTCGTCATGTAAAGAGGTAAGAGACCAATCTTCTTGAGCTAGGAGAGAGTGATTGATTTTTTATGTGGAGACCGCTCATTAGTCTTGTCTTTGCTTTTTGTTTACACTTGACAGAAAGACCAAGTGAAAGAAGGTCAAGTTCTGTGCTATATTGAACAGCTCGGTGGCCAATTTCCAATCGAGGTTATTTCAATTTCTGATATATTAATCATCTAATATCTCTTGCTTTTCACCAAGTCTGTTAACATTGCTTCTCTCTGTTTCTTGATCAATCTTTCAGTCTGATGTTACCGGCGAGGTTGTCAAAATACTCAGAGAGGATGGAGGCAAGTCTTTCTTCTTATTATTCTTTAACCTTTCTTAATACTCTTTGCCTAATGATTTTTTATTTTTTTTCTAATTTCAAAACAGAGCCTGTAGGATACAATGATGCTCTCATATCAATCCTTCCTTCCTTCCCTGGGATCAAGAAGCTTCAGTAGTACTAGAACCAAACCTGAGCTTGGTTTTATGTTGTGAAACGTGCCTTGTGTATGTTTTTTTTTTTTATAACAATATAAAACTTCATTCACATCTCTGTGTTTCTGTTTGTCTGAAAGTTCTTTTTTTAAGACACTGTTTTATTCTGTTCTTCTTTTTTTATATAAACAAAAACATTATGATACT",
   "Chr1.1_CDS": "ATGGCTTCCTGTAGCCTAGGAGTTCCGAAGATTAAAATCTCAGCGGTAGACGTGAGTAGAGTAAGATCTGGAAGGTTACAGATTCCATACAGTCAGAGATCATTGTTTGCTCAAAGGCAGGTTAAGTACTTGAGTCTGAGGACAAGTGTTGGATCTTTGAAAGCTCTCCAAGTGTCTACTGTCACAGCTGTGGAAACATCAGCTACTGTTGAAGTAGAAGATGCTGAAAAGACCAAGTCATCTCCGTTGAACGCTCAGCTCGTTCCCAAGCCCTCTGAGGTGGAAGCTCTTGTCACTGAGATATGTGATTCCTCATCAATTGCAGAGTTTGAACTGAAACTAGGGGGTTTCCGCCTATATGTAGCAAGGAACTTAGCTGACAACAACATTAGTCCACCACAACCTCAGCCAACTCCTGCTGCCCTTTCTGCAAATGCCGTTACCGAGAGTGCTGATTCTAATGGATCAGCTTCCTCTACTTCATTAGCCATCACAAAACCAGCATCTTCAGCTGCTGATCAGGGTTTGATTATTCTCCAATCTCCAAAAGTAGGATTCTTCAGGAGATCCAAAACCATAAAGGGTAAACGCACTCCTTCCTCCTGTAAAGAGAAAGACCAAGTGAAAGAAGGTCAAGTTCTTTGCTACATTGAGCAACTCGGTGGCCAGTTCCCTATCGAGTCTGATGTTACTGGAGAGGTTGTCAAGATACTCCGAGAGGATGGAGAGCCTGTAGGATACAATGATGCTCTCATCTCGATCCTTCCTTCCTTCCCTGGGATCAAGAAGCTTCAGTAG",
@@ -22,42 +22,48 @@ refSeq = {
 total_reads = 0
 
 with open(sys.argv[-1]) as hfrFile:
-	for eachline in hfrFile:
-		reads = eachline.split()[0]
-		total_reads += int(reads)
+	for line in hfrFile:
+		if not line.startswith("@"):
+			if int(len(line.split("\t")[9])) < 142:
+				continue
+			read_freq = line.split("\t")[0].split(";")[1].split("=")[1]
+			total_reads+=int(read_freq)
+
+# print total_reads
 
 with open(sys.argv[-1]) as hfrFile:
 	for line in hfrFile:
-		bam_entry = line.split()
-		read_count = bam_entry[0]
-		region = bam_entry[1]
-		mapStart = int(bam_entry[2])
-		mycigar = bam_entry[3]
-		if mycigar == "*":
-			continue
-		cigar_items = mycigar.split("=")
-		track_position = 0
-		for idx, cigar_item in enumerate(cigar_items):
-			if len(cigar_item) > 0:
-				x = re.findall("[XDI]", cigar_item)
-				if (x):
-					non_matches = list(cigar_item)
-					for nidx, non_match in enumerate(non_matches):
-						y = re.findall("[*XDI]", non_match)
-						if (y):
-							myedit = mapStart + (track_position - int(non_matches[nidx - 1]))
-							# print ref[myedit: myedit + ni]
-							# TO-DO: Remove repeated code and replace with function. Don't repeat yourself.
-							if y[0]=="X":
-								# print ("Sub", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s-%s-%s-%s\t%s\t" %("Sub",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
-							elif y[0]=="D":
-								# print ("Del", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s-%s-%s-%s\t%s\t" %("Del",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
-							elif y[0]=="I":
-								# print ("Ins", refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1], mycigar)
-								print ("%s-%s-%s-%s\t%s\t" %("Ins",refSeq[region][myedit-1:(myedit + int(non_matches[nidx - 1]))-1],round(int(read_count)/total_reads*100,2), region,"\t".join(bam_entry)))
-						else:
-							track_position+=int(non_match)
-				else:
-					track_position+=int(cigar_item)
+		if not line.startswith("@"):
+			sam_columns = line.split("\t")
+			cigar_string = sam_columns[5]
+			region_name = sam_columns[2]
+			start_pos = sam_columns[3]
+			sequence = sam_columns[9]
+			read_name = sam_columns[0]
+			read_count = read_name.split(";")[1].split("=")[1]
+			if cigar_string == "*":
+				continue
+			if int(len(sam_columns[9]))<142:
+				continue
+			if "I" not in cigar_string and "D" not in cigar_string and "X" not in cigar_string:
+				print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Wildtype","NA",read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
+			else:
+				match = re.findall(r'(\d+[M|I|D])', cigar_string)
+				edit_loc = 0
+				for cig in match:
+					single_cigar = re.findall(r'[M|I|D]', cig)
+					single_cigar_pos = re.findall(r'\d+', cig)
+					if single_cigar[0]=="M":
+						edit_loc += int(single_cigar_pos[0])
+					elif single_cigar[0]=="X":
+						edit_loc += int(single_cigar_pos[0])
+						print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Substitution",refSeq[region_name][edit_loc-1:edit_loc],read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
+						break
+					elif single_cigar[0]=="D":
+						edit_loc += int(single_cigar_pos[0])
+						print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Deletion",refSeq[region_name][edit_loc-1:edit_loc],read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
+						break
+					elif single_cigar[0]=="I":
+						edit_loc += int(single_cigar_pos[0])
+						print ("%s-%s-%s-%s-%s\t%s\t%s\t%s\t%s" %(region_name, "Insertion",refSeq[region_name][edit_loc-1:edit_loc],read_count, round((float(read_count)/total_reads)*100,1), region_name, start_pos, cigar_string, sequence))
+						break
