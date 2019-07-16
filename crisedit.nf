@@ -97,7 +97,7 @@ process mapHighFrequencyReads {
   val(reference) from Channel.fromPath(params.ref)
 
   output:
-  file "${uniq_seqs.baseName}.sam" into sam
+  file "${uniq_seqs.baseName}.sam" into (sam_copy1, sam_copy2)
   
 
   script:
@@ -107,8 +107,60 @@ process mapHighFrequencyReads {
 }
 
 
+
 /*
- * STEP 5 - Identifying edits
+ * STEP 5 - Convert SAM to BAM
+ */
+
+process samToBam {
+
+  tag "SAM to BAM"
+
+  publishDir "${params.out_dir}", mode: 'copy'
+
+  
+  input:
+  file inputSam from sam_copy1
+
+  output:
+  file "${inputSam.baseName}.bam" into bamFile
+  
+
+  script:
+  """
+  samtools view -S -b ${inputSam} > ${inputSam.baseName}.bam
+  """
+
+}
+
+
+
+/*
+ * STEP 6 - Sort and Index BAM
+ */
+process indexBam {
+
+  tag "Sort & Index BAM"
+
+  publishDir "${params.out_dir}", mode: 'copy'
+
+  
+  input:
+  file inputBam from bamFile
+  
+
+  script:
+  """
+  cd ${params.out_dir}
+  samtools sort ${inputBam} -o ${inputBam.baseName}.sorted.bam
+  samtools index ${inputBam.baseName}.sorted.bam
+  """
+
+}
+
+
+/*
+ * STEP 7 - Identifying edits
  */
 
 process identiyEdits {
@@ -117,10 +169,10 @@ process identiyEdits {
   publishDir "${params.out_dir}", mode: 'copy'
 
   input:
-  file mapfile from sam
+  file mapfile from sam_copy2
 
   output:
-  file "*.edits.hfr.txt" into hfr_file
+  file "*.edits.hfr.txt" into (hfr_file_copy1, hfr_file_copy2)
 
   script:
   """
@@ -131,7 +183,7 @@ process identiyEdits {
 
 
 /*
- * STEP 6 - Performing pair-wise alignment between high-frequence reads
+ * STEP 8 - Prepare for pairwise alignment between high-frequence reads
  * and the region they are mapped to
  */
 
@@ -142,8 +194,7 @@ process prepForPSA {
   publishDir "${params.out_dir}", mode: 'copy'
 
   input:
-  //set val(processedHfrFile), file(processedHfr) from hfr_file
-  val(processedHfrFile) from hfr_file
+  val(processedHfrFile) from hfr_file_copy1
   val(reference) from Channel.fromPath(params.ref)
 
 
@@ -157,6 +208,11 @@ process prepForPSA {
 }
 
 
+/*
+ * STEP 9 - Perform pair-wise alignment 
+ */
+
+
 process performPSA {
 
   tag "Pair-wise alignment"
@@ -167,11 +223,58 @@ process performPSA {
   val(clustal_in_fofn) from clustal_inputs.splitCsv(strip:true).map { line -> file(line[0]) }
 
   output:
-  file "${clustal_in_fofn.baseName}.clustal.out" into clustal_outs
+  file "${clustal_in_fofn.baseName}.clustal.out" into clustal_out
 
   script:
   """
   clustalo  --in=${clustal_in_fofn} > ${clustal_in_fofn.baseName}.clustal.out 
+  """
+}
+
+
+
+/*
+ * STEP 10 - Combine Clustal Omega outputs
+ */
+process combineClustalOut {
+  tag "Combine clustalO outputs"
+
+  publishDir "${params.out_dir}", mode: 'copy'
+
+  input:
+  set val(psa_out_file_comb), val(psa_out_comb) from clustal_out
+  .toList().flatten()
+  .map {
+    file -> tuple(file, file.baseName)
+  }
+
+  output:
+  file("${psa_out_comb}_combine.complete.txt") into combine_complete_marker
+
+  script:
+  """
+  cat ${psa_out_file_comb} >> ${params.out_dir}/${params.project_name}.combined.clustal.out
+  touch ${psa_out_comb}_combine.complete.txt
+  """
+}
+
+
+/*
+ * STEP 11 - Create final report
+ */
+process createFinalReport {
+  
+  input:
+  file '*.complete.txt' from combine_complete_marker.collect()
+  file(processedHfrFile) from hfr_file_copy2
+
+
+  script:
+  """
+  createReportPackage.sh ${processedHfrFile} ${params.project_name} ${params.out_dir} ${params.project_name}.combined.clustal.out
+  cd ${params.out_dir}
+  aws s3 cp ${params.project_name}.combined.clustal.out s3://bioinformatics-analysis-netsanet/ --acl public-read --profile netsanet_personal
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/msa.min.js
   """
 }
 
