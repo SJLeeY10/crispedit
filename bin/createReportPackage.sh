@@ -49,7 +49,7 @@ window.onload = function() {
 
 	var opts = {
 	  el: rootDiv,
-	  importURL: "http://s3.amazonaws.com/bioinformatics-analysis-netsanet/LC25.combined.clustal.out",
+	  importURL: "http://s3.amazonaws.com/${5}/${4}",
 	  vis: {
 	    labelId: true
 	  },
