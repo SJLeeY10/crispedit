@@ -278,9 +278,9 @@ process createFinalReport {
 
   script:
   """
-  createReportPackage.sh ${processedHfrFile} ${params.project_name} ${params.out_dir} ${params.project_name}.combined.clustal.out
+  createReportPackage.sh ${processedHfrFile} ${params.project_name} ${params.out_dir} ${params.project_name}.combined.clustal.out ${params.bucket}
   cd ${params.out_dir}
-  aws s3 cp ${params.project_name}.combined.clustal.out s3://bioinformatics-analysis-netsanet/ --acl public-read --profile netsanet_personal
+  aws s3 cp ${params.project_name}.combined.clustal.out s3://${params.bucket}/ --acl public-read
   wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/msa.min.js
   """
 }
