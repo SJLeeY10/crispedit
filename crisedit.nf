@@ -147,13 +147,18 @@ process indexBam {
   
   input:
   file inputBam from bamFile
+
+  output:
+  file("reads.mapped.txt") into mapped_reads_out
   
 
   script:
   """
-  cd ${params.out_dir}
+  pushd ${params.out_dir}
   samtools sort ${inputBam} -o ${inputBam.baseName}.sorted.bam
   samtools index ${inputBam.baseName}.sorted.bam
+  popd
+  samtools view -F 4 ${inputBam}|awk -F'\t' '{ print \$1"\t"\$3"\t"\$10"\t"\$4 }'>reads.mapped.txt
   """
 
 }
@@ -169,14 +174,16 @@ process identiyEdits {
   publishDir "${params.out_dir}", mode: 'copy'
 
   input:
-  file mapfile from sam_copy2
+  file mapped_reads from mapped_reads_out
 
-  output:
-  file "*.edits.hfr.txt" into (hfr_file_copy1, hfr_file_copy2)
+  output: 
+  file "${mapped_reads.baseName}.edits.txt" into editsFile
+  file "${mapped_reads.baseName}.edits.reformatted.txt" into (hfr_file_copy1, hfr_file_copy2)
 
   script:
   """
-  cigar2seq.py ${mapfile} > ${mapfile.baseName}.edits.hfr.txt
+  identifyEditsPAM.py ${mapped_reads}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt
+  reformatEditsOutput.py ${mapped_reads.baseName}.edits.txt > ${mapped_reads.baseName}.edits.reformatted.txt
   """
 }
 

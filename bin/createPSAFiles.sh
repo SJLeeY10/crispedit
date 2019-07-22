@@ -11,8 +11,8 @@ while read line
 do  
 	region=$(printf "%s\n" "$line"|awk -F'\t' '{ print $2 }')
 	target_fasta_header=$(printf "%s\n" "$line"|awk -F'\t' '{ print $1 }')
-	targetSequence=$(printf "%s\n" "$line"|awk -F'\t'  '{ print $5 }')
-	mapStart=$(printf "%s\n" "$line"|awk -F'\t' '{ print $3 }')
+	targetSequence=$(printf "%s\n" "$line"|awk -F'\t'  '{ print $3 }')
+	mapStart=$(printf "%s\n" "$line"|awk -F'\t' '{ print $4 }')
 
 
 	printf ">${target_fasta_header}\n${targetSequence}\n" > ${outputDir}/${target_fasta_header}_targets_ref_psa_input.fa
