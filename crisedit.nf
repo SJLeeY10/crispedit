@@ -9,11 +9,12 @@
 
 
 
+
 /*
- * STEP 1 - Converting fastq to fasta
+ * STEP 1 - De-interleaving interleaved fastq, Merging paired-end reads, converting fastq to fasta
  */
 
-process fastqToFasta {
+process mergeReads {
 
   tag "${fastq}.baseName"
 
@@ -28,7 +29,9 @@ process fastqToFasta {
 
   script:
   """
-  reformat.sh in=${fastq} out=${fastq.baseName}.fasta
+  reformat.sh in=${fastq}  out1=${fastq.baseName}.read1.fastq out2=${fastq.baseName}.read2.fastq
+  bbmerge.sh in1=${fastq.baseName}.read1.fastq in2=${fastq.baseName}.read2.fastq out=${fastq.baseName}.merged.fq
+  reformat.sh in=${fastq.baseName}.merged.fq out=${fastq.baseName}.fasta
   """
 }
 
