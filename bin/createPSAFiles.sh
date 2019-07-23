@@ -18,7 +18,7 @@ do
 	printf ">${target_fasta_header}\n${targetSequence}\n" > ${outputDir}/${target_fasta_header}_targets_ref_psa_input.fa
 	
 	#TO-DO: Do not hard-code read length - 142 below
-	mapStop=`expr ${mapStart} + 141`
+	mapStop=`expr ${mapStart} + ${#targetSequence}`
 	referenceSequence=$(cat ${referenceFile}|awk   "/${region}/{getline; print }")
 	referenceSubSequence=$(echo ${referenceSequence}|cut -c${mapStart}-${mapStop})
 	printf ">${region}\n${referenceSubSequence}\n" >> ${outputDir}/${target_fasta_header}_targets_ref_psa_input.fa
