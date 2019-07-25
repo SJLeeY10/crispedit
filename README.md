@@ -2,31 +2,32 @@
 **Nextflow pipeline for inference of CRISPR edits from NGS (Amplicon Sequencing) data**
 
 ```
-nextflow run crispedit/crisedit.nf --in_fastq LC25_18_3433_BADC3_4_6_313418w_BG6.fastq --ref canola_badc_allgenes.fa --out_dir ${PWD}/myProject --project_name LC25
+run crispedit/crisedit.nf --in_fastq  /Users/ngebremedhin/Downloads/VB26_18_3428_P1087_308811w_BF8.fastq  --ref canola_badc_allgenes.fa --out_dir ${PWD}/myProject --project_name LC25 --bucket bioinformatics-analysis-netsanet --sgrna "CCTTCTGAGCCCATGAACAAATC"
 ```
 
 ```
 N E X T F L O W  ~  version 19.04.1
-Launching `crispedit/crisedit.nf` [big_blackwell] - revision: 41417d8f3c
-[warm up] executor > local
-executor >  local (83)
-[6d/918cb1] process > fastqToFasta          [100%] 1 of 1 ✔
-[90/e49df1] process > dereplication         [100%] 1 of 1 ✔
-[76/daf026] process > clustering            [100%] 1 of 1 ✔
-[7e/b54e6c] process > mapHighFrequencyReads [100%] 1 of 1 ✔
-[a3/053e40] process > samToBam              [100%] 1 of 1 ✔
-[14/74b006] process > identiyEdits          [100%] 1 of 1 ✔
-[9a/c129d3] process > indexBam              [100%] 1 of 1 ✔
-[a0/cbdf9a] process > prepForPSA            [100%] 1 of 1 ✔
-[48/4c5ef7] process > performPSA            [100%] 37 of 37 ✔
-[65/be3e70] process > combineClustalOut     [100%] 37 of 37 ✔
-[03/da9217] process > createFinalReport     [100%] 1 of 1 ✔
+Launching `crispedit/crisedit.nf` [hopeful_swanson] - revision: 607eaca8d5
 
-Completed at: 16-Jul-2019 12:05:50
-Duration    : 22.3s
+[warm up] executor > local
+executor >  local (27)
+[a7/a397c1] process > mergeReads            [100%] 1 of 1 ✔
+[58/d46b33] process > clustering            [100%] 1 of 1 ✔
+[1d/5e8374] process > dereplication         [100%] 1 of 1 ✔
+[bb/cc12b3] process > mapHighFrequencyReads [100%] 1 of 1 ✔
+[44/eec241] process > samToBam              [100%] 1 of 1 ✔
+[92/c84f30] process > indexBam              [100%] 1 of 1 ✔
+[d2/119094] process > identiyEdits          [100%] 1 of 1 ✔
+[a2/38c0af] process > prepForPSA            [100%] 1 of 1 ✔
+[a6/51cabd] process > performPSA            [100%] 9 of 9 ✔
+[bd/fd96a3] process > combineClustalOut     [100%] 9 of 9 ✔
+[33/0f5567] process > createFinalReport     [100%] 1 of 1 ✔
+
+Completed at: 25-Jul-2019 11:37:08
+Duration    : 12.4s
 CPU hours   : (a few seconds)
-Succeeded   : 83
+Succeeded   : 27
 ```
 
 ### Credits
-crispedit was originally written by Netsanet Gebremedhin.
+crispedit is written by Netsanet Gebremedhin.
