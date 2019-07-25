@@ -2,11 +2,10 @@
 
 import sys
 
-sgRna="GCTCGTTCCCAAGCCCTCTGAGG"
-rCsgRna="CCTCAGAGGGCTTGGGAACGAGC" # Reverse complement of the guide RNA
+sgRna=sys.argv[2]
 
 
-with open(sys.argv[-1]) as mapFile:
+with open(sys.argv[1]) as mapFile:
 	for line in mapFile:
 		cols = line.strip().split("\t")
 		sequence_count = cols[0].split(";")[1].split("=")[1]
