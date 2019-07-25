@@ -21,7 +21,7 @@ row_data="${row_data}<tr><td>${region}</td><td>${edit_type}</td><td>${edit}</td>
 
 done<$1
 
-report_table="<table border="1"><tr><th>Region</th><th>Edit-Type</th><th>Edit</th><th>Read Count</th><th>Edit Percent</th></tr>${row_data}</table>"
+report_table="<table border="1" id="crispr"><thead><tr><th>Region</th><th>Edit-Type</th><th>Edit</th><th>Read Count</th><th>Edit Percent</th></tr></thead><tbody>${row_data}</tbody><tfoot><tr><th>Region</th><th>Edit-Type</th><th>Edit</th><th>Read Count</th><th>Edit Percent</th></tr></tfoot></table>"
 
 cat > ${3}/msa.html <<EOF
 <!DOCTYPE html>
@@ -33,7 +33,19 @@ cat > ${3}/msa.html <<EOF
   <title>CRISPR Edits</title>
 </head>
 <body>
+<link rel="stylesheet" type="text/css" href="jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="buttons.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="select.dataTables.min.css">
 <script src="msa.min.js"></script>
+<script type="text/javascript" src="jquery-3.3.1.js"></script>
+<script type="text/javascript" src="jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="buttons.flash.min.js"></script>
+<script type="text/javascript" src="jszip.min.js"></script>
+<script type="text/javascript" src="pdfmake.min.js"></script>
+<script type="text/javascript" src="vfs_fonts.js"></script>
+<script type="text/javascript" src="buttons.html5.min.js"></script>
+<script type="text/javascript" src="buttons.print.min.js"></script>
 <script type="text/javascript" src="msa.js"></script>
 <div id=project_name><h1>${2}</h1></div>
 <div id="table">${report_table}</div>
@@ -65,4 +77,26 @@ window.onload = function() {
 			});
 		}, 5000);
 };
+
+\$(document).ready(function() {
+    \$('#crispr').DataTable( {
+        dom: 'Bfrtip',
+        buttons: [
+            'copy',
+            'csv',
+            'excel',
+            'pdf',
+            {
+                extend: 'print',
+                text: 'Print all (not just selected)',
+                exportOptions: {
+                    modifier: {
+                        selected: null
+                    }
+                }
+            }
+        ],
+        select: true
+    } );
+} );
 EOF

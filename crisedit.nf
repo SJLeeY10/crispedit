@@ -283,8 +283,21 @@ process createFinalReport {
   """
   createReportPackage.sh ${processedHfrFile} ${params.project_name} ${params.out_dir} ${params.project_name}.combined.clustal.out ${params.bucket}
   cd ${params.out_dir}
-  aws s3 cp ${params.project_name}.combined.clustal.out s3://${params.bucket}/ --acl public-read 
+  aws s3 cp ${params.project_name}.combined.clustal.out s3://${params.bucket}/ --acl public-read
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/buttons.flash.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/buttons.html5.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/buttons.print.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/dataTables.buttons.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/dataTables.select.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/jquery-3.3.1.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/jquery.dataTables.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/jszip.min.js
   wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/msa.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/pdfmake.min.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/vfs_fonts.js
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/buttons.dataTables.min.css
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/jquery.dataTables.min.css
+  wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/select.dataTables.min.css
   """
 }
 
