@@ -14,6 +14,9 @@ do
 	targetSequence=$(printf "%s\n" "$line"|awk -F'\t'  '{ print $3 }')
 	mapStart=$(printf "%s\n" "$line"|awk -F'\t' '{ print $4 }')
 
+	if [ "${region}" == "Random" ] || [ "${region}" == "Amplicon" ]; then
+		continue
+	fi
 
 	printf ">${target_fasta_header}\n${targetSequence}\n" > ${outputDir}/${target_fasta_header}_targets_ref_psa_input.fa
 	
