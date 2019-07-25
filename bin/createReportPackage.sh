@@ -35,6 +35,15 @@ cat > ${3}/msa.html <<EOF
 <body>
 <script src="msa.min.js"></script>
 <script type="text/javascript" src="msa.js"></script>
+<script type="text/javascript" src="jquery-3.3.1.js"></script>
+<script type="text/javascript" src="jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="buttons.flash.min.js"></script>
+<script type="text/javascript" src="jszip.min.js"></script>
+<script type="text/javascript" src="pdfmake.min.js"></script>
+<script type="text/javascript" src="vfs_fonts.js"></script>
+<script type="text/javascript" src="buttons.html5.min.js"></script>
+<script type="text/javascript" src="buttons.print.min.js"></script>
 <div id=project_name><h1>${2}</h1></div>
 <div id="table">${report_table}</div>
 <div id="msa">Loading Multiple Alignment...</div>
@@ -65,4 +74,26 @@ window.onload = function() {
 			});
 		}, 5000);
 };
+
+$(document).ready(function() {
+    $('#table').DataTable( {
+        dom: 'Bfrtip',
+        buttons: [
+            'copy',
+            'csv',
+            'excel',
+            'pdf',
+            {
+                extend: 'print',
+                text: 'Print all (not just selected)',
+                exportOptions: {
+                    modifier: {
+                        selected: null
+                    }
+                }
+            }
+        ],
+        select: true
+    } );
+} );
 EOF
