@@ -185,7 +185,7 @@ process identiyEdits {
 
   script:
   """
-  identifyEditsPAM.py ${mapped_reads}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt
+  identifyEditsPAM.py ${mapped_reads} ${params.sgrna}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt
   reformatEditsOutput.py ${mapped_reads.baseName}.edits.txt > ${mapped_reads.baseName}.edits.reformatted.txt
   """
 }
@@ -283,7 +283,7 @@ process createFinalReport {
   """
   createReportPackage.sh ${processedHfrFile} ${params.project_name} ${params.out_dir} ${params.project_name}.combined.clustal.out ${params.bucket}
   cd ${params.out_dir}
-  aws s3 cp ${params.project_name}.combined.clustal.out s3://${params.bucket}/ --acl public-read
+  aws s3 cp ${params.project_name}.combined.clustal.out s3://${params.bucket}/ --acl public-read 
   wget https://raw.githubusercontent.com/gnetsanet/crispedit/master/bin/msa.min.js
   """
 }
