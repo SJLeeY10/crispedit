@@ -161,7 +161,8 @@ process indexBam {
   samtools sort ${inputBam} -o ${inputBam.baseName}.sorted.bam
   samtools index ${inputBam.baseName}.sorted.bam
   popd
-  samtools view -F 4 ${inputBam}|awk -F'\t' '{ print \$1"\t"\$3"\t"\$10"\t"\$4 }'>reads.mapped.txt
+  #samtools view -F 4 ${inputBam}|awk -F'\t' '{ print \$1"\t"\$3"\t"\$10"\t"\$4 }'>reads.mapped.txt
+  samtools view -F 4 ${inputBam} >reads.mapped.txt # kept the reads.mapped.txt just for compatibility reasons, otherwise identifyEditsPAM.py can just as easily read in the SAM file
   """
 
 }
@@ -185,7 +186,8 @@ process identiyEdits {
 
   script:
   """
-  identifyEditsPAM.py ${mapped_reads} ${params.sgrna}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt
+  #identifyEditsPAM.py ${mapped_reads} ${params.sgrna}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt
+  identifyEditsPAM.py ${mapped_reads}|sort -k1,1rn > ${mapped_reads.baseName}.edits.txt # No longer need the guide RNA sequence
   reformatEditsOutput.py ${mapped_reads.baseName}.edits.txt > ${mapped_reads.baseName}.edits.reformatted.txt
   """
 }

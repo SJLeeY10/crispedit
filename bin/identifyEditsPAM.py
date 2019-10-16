@@ -1,91 +1,49 @@
 #!/usr/bin/env python
 
+import re
 import sys
 from Bio.Seq import Seq
 
-sgRna = sys.argv[2]
+#sgRna = sys.argv[2]
 
-# sgRnas = ["GATTTGTTCATGGGCTCAGAAGG",
-# "GCTCGTTCCCAAGCCCTCTGAGG",
-# "GCTTGTTCCCAAGCCCTCTGAGG",
-# "CCTTCTGAGCCCATGAACAAATC",
-# "GATTTGTTCATGGGCTCAGAAGG"
-# "CCTCAGAGGGCTTGGGAACGAGC"]
 
 
 randomSeq= []
 ampliconReads = []
 
 
-with open(sys.argv[1]) as mapFile:
-	for line in mapFile:
-		cols = line.strip().split("\t")
-		sequence_count = cols[0].split(";")[1].split("=")[1]
-		if sgRna in cols[2]:
-			indexSgRna = cols[2].find(sgRna)
-			ampliconReads.append(cols[0])
-			print str(sequence_count) + "\t" + "Wildtype" + "\t" + cols[1]  + "\t" + "NA" + "\t" + cols[2] + "\t" + cols[3]
-		elif sgRna in Seq(cols[2]).reverse_complement(): # Check in the reverse complement as well
-			ampliconReads.append(cols[0])
-			print str(sequence_count) + "\t" + "Wildtype" + "\t" + cols[1]  + "\t" + "NA" + "\t" + cols[2] + "\t" + cols[3]
-		else:
-			for i in range(len(sgRna)-1,0,-1):
-					if sgRna[0:i] in cols[2]:
-						indexSgRna = cols[2].find(sgRna[0:i])
-						# ignore those high frequency reads that contain only a small stretch of the sgRNA
-						if len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1]) < 23:
-							continue
-						# if the portion of guide RNA found in the high frequency sequence is too short, it could be just a random sequence, so ignore
-						if len(sgRna[0:i]) < 10:
-							# Random  or non-specific amplication, count and report
-							randomSeq.append(cols[0])
-							continue 
-						
-						if cols[2][indexSgRna:indexSgRna+len(sgRna)+1].find("GAGG")==20:
-							# This must be an insertion
-							# print "Insertion" + "\t" + cols[1] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1] + "\t" + str(len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1])) + "\t" + sgRna[0:i] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1][len(sgRna[0:i])]
-							ampliconReads.append(cols[0])
-							print str(sequence_count) + "\t" + "Insertion" + "\t" + cols[1]  + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1][len(sgRna[0:i])] + "\t" + cols[2] + "\t" + cols[3]
-							break
-						elif cols[2][indexSgRna:indexSgRna+len(sgRna)+1].find("GAGG")!=20:
-							#This must be a deletion
-							# print "Deletion" + "\t" + cols[1] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1] + "\t" + str(len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1])) + "\t" + sgRna[0:i] + "\t" + sgRna[len(sgRna[0:i])]
-							ampliconReads.append(cols[0])
-							print str(sequence_count) + "\t" + "Deletion" + "\t" + cols[1] +  "\t" + sgRna[len(sgRna[0:i])] + "\t" + cols[2] + "\t" + cols[3]
-							break
-					elif sgRna[0:i] in Seq(cols[2]).reverse_complement():
-						##
-						## TO-DO: This block is duplicated for testing and quick deliver, get it into a function
-						##
-						indexSgRna = cols[2].find(sgRna[0:i])
-						# ignore those high frequency reads that contain only a small stretch of the sgRNA
-						if len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1]) < 23:
-							continue
-						# if the portion of guide RNA found in the high frequency sequence is too short, it could be just a random sequence, so ignore
-						if len(sgRna[0:i]) < 10:
-							# Random  or non-specific amplication, count and report
-							randomSeq.append(cols[0])
-							continue 
-						
-						if cols[2][indexSgRna:indexSgRna+len(sgRna)+1].find("GAGG")==20:
-							# This must be an insertion
-							# print "Insertion" + "\t" + cols[1] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1] + "\t" + str(len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1])) + "\t" + sgRna[0:i] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1][len(sgRna[0:i])]
-							ampliconReads.append(cols[0])
-							print str(sequence_count) + "\t" + "Insertion" + "\t" + cols[1]  + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1][len(sgRna[0:i])] + "\t" + cols[2] + "\t" + cols[3]
-							break
-						elif cols[2][indexSgRna:indexSgRna+len(sgRna)+1].find("GAGG")!=20:
-							#This must be a deletion
-							# print "Deletion" + "\t" + cols[1] + "\t" + cols[2][indexSgRna:indexSgRna+len(sgRna)+1] + "\t" + str(len(cols[2][indexSgRna:indexSgRna+len(sgRna)+1])) + "\t" + sgRna[0:i] + "\t" + sgRna[len(sgRna[0:i])]
-							ampliconReads.append(cols[0])
-							print str(sequence_count) + "\t" + "Deletion" + "\t" + cols[1] +  "\t" + sgRna[len(sgRna[0:i])] + "\t" + cols[2] + "\t" + cols[3]
-							break
+with open(sys.argv[1]) as samFile:
+	for line in samFile:
+		if not line.startswith("@"):
+			cols = line.strip().split("\t")
+			sequence_count = cols[0].split(";")[1].split("=")[1]
+			cigar = cols[5]
+			nm_tag = cols[11]
+			md_tag = cols[12]
+
+			if nm_tag == "NM:i:0": # Matches the reference: Edit distance of 0, then this must be wild-type
+				print(str(sequence_count) + "\t" + "Wildtype" + "\t" + cols[2] +  "\tNA\t" + cols[9] + "\t" + cols[3])
+			else:
+				deletion = re.search(r'\^',md_tag)
+				if deletion != None: # if deletion
+					m=re.search(r'(\^([AGCT]+))',md_tag)
+					variant = m.group(2)
+					print(str(sequence_count) + "\t" + "Deletion" + "\t" + cols[2] +  "\t" + variant + "\t" + cols[9] + "\t" + cols[3])
+				else: # if not deletion, go to the cigar string to find the inserted nucleotide/s
+					m=re.findall(r'((\d+)(M|I))',cigar)
+					z= [m[0:i] for i, x in enumerate(m) if x[2]=='I']
+
+					variant = []
+					for i in z:
+						variant.append(cols[9][sum(int(x[1]) for x in i)])
+					print(str(sequence_count) + "\t" + "Insertion" + "\t" + cols[2] +  "\t" + ' '.join(variant) + "\t" + cols[9] + "\t" + cols[3])
 
 ## Report random sequences or sequences that does not contain guide RNA
 count_random_reads = []
 for k in set(randomSeq):
 	count_random_reads.append(int(k.split(";")[1].split("=")[1]))
 
-print str(sum(count_random_reads)) + "\tNA\tRandom\tNA\tNA\tNA"
+print(str(sum(count_random_reads)) + "\tNA\tRandom\tNA\tNA\tNA")
 
 
 # Report amplicon reads, not yet
